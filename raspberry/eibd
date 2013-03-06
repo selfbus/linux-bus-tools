@@ -1,0 +1,102 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:             eibd
+# Required-Start:       $remote_fs $syslog $time $network
+# Required-Stop:        $remote_fs $syslog $time $network
+# Default-Start:        2 3 4 5
+# Default-Stop:
+# Short-Description:    EIB daemon eibd
+### END INIT INFO
+
+set -e
+# /etc/init.d/eibd: start and stop the EIB daemon eibd
+
+test -x /usr/bin/eibd || exit 0
+umask 022
+
+# User for eibd. It is recommended to not use "root".
+# Best would be to create an own user with "useradd", but we will use the user pi
+# here for simplicity.
+EIBD_USER=pi
+
+# Device that eibd shall use
+EIBD_DEVICE=/dev/ttyAMA0
+
+# Type of the eibd device
+EIBD_DEVICE_TYPE=ft12
+
+# Options for eibd
+EIBD_OPTS="--eibaddr=0.0.254 -D -T -S -i --trace=15"
+
+# Log file
+LOGFILE=/var/log/eibd.log
+
+# PID file
+PIDFILE=/var/run/eibd.pid
+
+if test -f /etc/default/eibd; then
+    . /etc/default/eibd
+fi
+
+EIBD_OPTS="$EIBD_OPTS --pid-file=$PIDFILE --daemon=$LOGFILE $EIBD_DEVICE_TYPE:$EIBD_DEVICE"
+
+. /lib/lsb/init-functions
+
+check_device()
+{
+  if [ ! -c "$EIBD_DEVICE" ]; then
+    if [ "$1" = log_end_msg ]; then
+      log_end_msg 1 || true
+    fi
+    if ! run_by_init; then
+      log_action_msg "$EIBD_DEVICE is not a character device!" || true
+    fi
+      exit 1
+  fi
+}
+
+setup_device()
+{
+   chown "$EIBD_USER" "$EIBD_DEVICE" || (log_action_msg "Cannot change owner of $EIBD_DEVICE to $EIBD_USER"; exit 1)
+}
+
+case "$1" in
+  start)
+    check_device
+    setup_device
+    log_daemon_msg "Starting EIB daemon" "eibd" || true
+    touch $LOGFILE $PIDFILE
+    chown $EIBD_USER $LOGFILE $PIDFILE
+    if start-stop-daemon --start --chuid $EIBD_USER --quiet --oknodo --exec /usr/bin/eibd -- $EIBD_OPTS; then
+	   log_end_msg 0 || true
+	 else
+	   log_end_msg 1 || true
+	 fi
+    ;;
+
+  stop)
+	 log_daemon_msg "Stopping EIB daemon" "eibd" || true
+	 if start-stop-daemon --stop --quiet --oknodo --pidfile $PIDFILE; then
+	   log_end_msg 0 || true
+	 else
+	   log_end_msg 1 || true
+	 fi
+    ;;
+
+  restart)
+    $0 stop
+    $0 start
+    ;;
+
+  status)
+	 status_of_proc /usr/bin/eibd eibd && exit 0 || exit $?
+	 ;;
+
+  *)
+    log_action_msg "Usage: /etc/init.d/eibd {start|stop|restart|status}" || true
+    exit 1
+    ;;
+esac
+
+exit 0
+

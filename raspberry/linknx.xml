@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<config>
+    <services>
+        <smsgateway />
+        <emailserver />
+        <xmlserver type="inet" port="1028" />
+        <knxconnection url="ip:127.0.0.1" />
+        <exceptiondays />
+        <location lon="13.5583" lat="52.673" />
+        <persistence type="file" path="/var/lib/linknx/persist/" logpath="/var/lib/linknx/persistlog/" />
+        <ioports />
+    </services>
+    <objects>
+    </objects>
+    <rules />
+    <logging output="/var/lib/linknx/logging.conf" maxfilesize="1024" maxfileindex="1000" format="simple" level="DEBUG" />
+</config>
