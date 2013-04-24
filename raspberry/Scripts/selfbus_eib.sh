@@ -54,6 +54,7 @@ installKnxWeb2()
 	mkdir /var/www/knxweb2/template/template_c/ 
 	chown -R www-data /var/www/knxweb2/template/template_c/
 	chown -R www-data /var/www/knxweb2/include/ 
+	rm /var/www/knxweb2/design/.empty
 	cd /etc
 	wget -N https://github.com/selfbus/linux-bus-tools/raw/master/raspberry/Scripts/linknx.xml
 }
