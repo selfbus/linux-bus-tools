@@ -4,9 +4,6 @@
 updateApt()
 {
 	echo "Update Apt..."
-	apt-get -y update
-	apt-get -y dist-upgrade
-	apt-get -y install mc	
 	apt-get -y install tmux vim
 	apt-get -y install libmysqlclient-dev liblog4cpp5-dev libxml2-dev libesmtp-dev liblua5.1-0-dev libcurl4-openssl-dev
 }
@@ -60,6 +57,7 @@ installKnxWeb2()
 	wget -N https://github.com/selfbus/linux-bus-tools/raw/master/raspberry/Scripts/linknx.xml
 }
 
+updateApt
 installPthsem
 installEibd
 installLinknx
