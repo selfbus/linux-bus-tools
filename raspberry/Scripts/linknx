@@ -11,7 +11,7 @@
 set -e
 # /etc/init.d/linknx: start and stop the LINKNX daemon linknx
 
-test -x /usr/local/bin/linknx || exit 0
+test -x /usr/bin/linknx || exit 0
 umask 022
 
 # User for linknx. It is recommended to not use "root".
@@ -41,7 +41,7 @@ case "$1" in
     log_daemon_msg "Starting LINKNX daemon" "linknx" || true
     touch $LOGFILE $PIDFILE
     chown $LINKNX_USER $LOGFILE $PIDFILE
-    if start-stop-daemon --start --chuid $LINKNX_USER --quiet --oknodo --exec /usr/local/bin/linknx -- $LINKNX_OPTS; then
+    if start-stop-daemon --start --chuid $LINKNX_USER --quiet --oknodo --exec /usr/bin/linknx -- $LINKNX_OPTS; then
 	   log_end_msg 0 || true
 	 else
 	   log_end_msg 1 || true
@@ -63,7 +63,7 @@ case "$1" in
     ;;
 
   status)
-	 status_of_proc /usr/local/bin/linknx linknx && exit 0 || exit $?
+	 status_of_proc /usr/bin/linknx linknx && exit 0 || exit $?
 	 ;;
 
   *)

@@ -36,6 +36,7 @@ installEibd()
 installLinknx()
 {
 	echo "Load and install Linknx..."
+	cd /tmp
 	wget -N https://github.com/selfbus/linux-bus-tools/raw/master/raspberry/Packs/linknx_0.0.1.30-1_armhf.deb 
 	dpkg -i linknx_0.0.1.30-1_armhf.deb 
 	cd /etc/init.d
