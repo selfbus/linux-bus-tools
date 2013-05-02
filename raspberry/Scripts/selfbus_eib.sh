@@ -17,7 +17,7 @@ installPthsem()
 	cd /tmp
 	wget -N https://github.com/selfbus/linux-bus-tools/raw/master/raspberry/Packs/pthsem_2.0.8-1_armhf.deb
 	dpkg -i pthsem_2.0.8-1_armhf.deb
-	LD_LIBRARY_PATH="/usr/local/lib/"
+	LD_LIBRARY_PATH="/usr/lib/"
 	ldconfig
 }
 
