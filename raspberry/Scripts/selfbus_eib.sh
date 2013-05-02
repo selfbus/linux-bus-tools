@@ -4,6 +4,7 @@
 updateApt()
 {
 	echo "Update Apt..."
+	apt-get -y update
 	apt-get -y install tmux vim
 	apt-get -y install libmysqlclient-dev liblog4cpp5-dev libxml2-dev libesmtp-dev liblua5.1-0-dev libcurl4-openssl-dev
 }
