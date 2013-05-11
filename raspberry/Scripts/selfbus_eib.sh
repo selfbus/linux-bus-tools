@@ -41,6 +41,11 @@ installLinknx()
 	wget -N https://github.com/selfbus/linux-bus-tools/raw/master/raspberry/Scripts/linknx
 	chmod a+x linknx
 	update-rc.d linknx defaults
+	mkdir /var/lib/linknx/
+	mkdir /var/lib/linknx/persist/
+	mkdir /var/lib/linknx/persistlog/
+	touch /var/lib/linknx/logging.conf
+	chmod a+rw /var/lib/linknx/logging.conf
 }
 
 installKnxWeb2()
