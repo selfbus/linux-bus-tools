@@ -46,6 +46,9 @@ installLinknx()
 	mkdir /var/lib/linknx/persistlog/
 	touch /var/lib/linknx/logging.conf
 	chmod a+rw /var/lib/linknx/logging.conf
+	cd /etc
+	wget -N https://github.com/selfbus/linux-bus-tools/raw/master/raspberry/Scripts/linknx.xml
+	chmod a+rw linknx.xml
 }
 
 installKnxWeb2()
@@ -59,8 +62,7 @@ installKnxWeb2()
 	chown -R www-data /var/www/knxweb2/template/template_c/
 	chown -R www-data /var/www/knxweb2/include/ 
 	rm /var/www/knxweb2/design/.empty
-	cd /etc
-	wget -N https://github.com/selfbus/linux-bus-tools/raw/master/raspberry/Scripts/linknx.xml
+	
 }
 
 updateApt
