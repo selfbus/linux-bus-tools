@@ -1,4 +1,4 @@
-#!/bin/sh
+﻿#!/bin/sh
 
 # Copyright (c) 2018 Christian Balzer <christian-balzer@gmx.de>
 #
@@ -15,9 +15,9 @@
 # limitations under the License.
 
 # History
-# 2018-01-07	First version. Made for fresh RPi Stretch or Jessie installations. 
-# 				No script interaction, no error handling. 
-# 				After calling the script and doing a reboot knxd should be found by ETS
+# 2018-01-07    First version. Made for fresh RPi Stretch or Jessie installations. 
+#               No script interaction, no error handling. 
+#               After calling the script and doing a reboot knxd should be found by ETS
 
 
 if [ `id -u` = 0 ];then
@@ -44,18 +44,18 @@ fi
 
 if [ $VER = 9 ]
 then
-	neededpackages="debhelper automake libtool libusb-1.0-0-dev git-core build-essential libsystemd-dev dh-systemd libev-dev cmake mc"
-	echo "   *** erkannte Debian-Version: $VER"
+    neededpackages="debhelper automake libtool libusb-1.0-0-dev git-core build-essential libsystemd-dev dh-systemd libev-dev cmake mc"
+    echo "   *** erkannte Debian-Version: $VER"
 elif [ $VER = 8 ]
 then
-	neededpackages="debhelper automake libtool libusb-1.0-0-dev git-core build-essential libsystemd-daemon-dev dh-systemd libev-dev cmake mc"
-	echo "   *** erkannte Debian-Version: $VER"
+    neededpackages="debhelper automake libtool libusb-1.0-0-dev git-core build-essential libsystemd-daemon-dev dh-systemd libev-dev cmake mc"
+    echo "   *** erkannte Debian-Version: $VER"
 else 
-	neededpackages="debhelper automake libtool libusb-1.0-0-dev git-core build-essential libsystemd-dev dh-systemd libev-dev cmake mc"
-	echo "   *** erkannte Debian-Version: $VER"
-	echo "   *** Weder Debian Stretch (Verison 9) noch Jessie (Version 8) erkannt. Gehe von neuerer Version aus und wir versuchen mal unser Glück."
+    neededpackages="debhelper automake libtool libusb-1.0-0-dev git-core build-essential libsystemd-dev dh-systemd libev-dev cmake mc"
+    echo "   *** erkannte Debian-Version: $VER"
+    echo "   *** Weder Debian Stretch (Verison 9) noch Jessie (Version 8) erkannt. Gehe von neuerer Version aus und wir versuchen mal unser Glück."
 fi
-	
+    
 
 echo "   *** Passe /boot/cmdline.txt an, um Ausgabe der Konsole auf serielle Schnittstelle zu unterbinden."
 sleep 2
