@@ -1,4 +1,6 @@
-﻿# Copyright (c) 2018 Christian Balzer <christian-balzer@gmx.de>
+#!/bin/sh
+
+# Copyright (c) 2018 Christian Balzer <christian-balzer@gmx.de>
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,14 +15,19 @@
 # limitations under the License.
 
 # History
-# 2018-01-07    First version. Made for fresh RPi Stretch or Jessie installations. 
-#               No script interaction, no error handling. 
+# 2018-01-07    First version. Made for fresh RPi Stretch or Jessie installations.
+#               No script interaction, no error handling.
 #               After calling the script and doing a reboot knxd should be found by ETS
+# 2018-01-09    Adaption for RPi3 + bigfixes
 
 
 if [ `id -u` = 0 ];then
-    echo "   *** Annahmen: frisches raspian stretch oder jessie. User: Pi" 
-    echo "   *** Skript enthaelt bisher keine Fehlerpruefung! --> Daumen druecken, dass alles gut laeuft!" 
+    echo "   *** Annahmen: "; sleep 1
+    echo '   ***   * frisches raspian stretch oder jessie (ohne eibd) '; sleep 1
+    echo "   ***   * user: pi"; sleep 1
+    echo "   ***   * installiertes FT1.2 Modul"; sleep 1
+    echo "   ***   "
+    echo "   *** Skript enthaelt bisher keine Fehlerpruefung! --> Daumen druecken, dass alles gut laeuft!" ; sleep 1
     echo "   *** Installation startet in 5 Sekunden. "
     sleep 5
 else
@@ -31,6 +38,8 @@ fi
 kernelsserial=`udevadm info -a /dev/ttyAMA0 | grep KERNELS.*serial | sed "s|.*\"\(.*\)\".*|\\1|"`
 attrsid=`udevadm info -a /dev/ttyAMA0 | grep \{id\} | sed "s|.*\"\(.*\)\".*|\\1|"`
 neededpackages=
+rpigeneration=`cat /proc/cpuinfo | grep Revision | sed s/"Revision.*: "/""/g`
+
 
 # Zugrundeliegende OS Version prüfen
 # je nach Version werden leicht unterschiedliche Softwarepakete benötigt
@@ -48,12 +57,12 @@ elif [ $VER = 8 ]
 then
     neededpackages="debhelper automake libtool libusb-1.0-0-dev git-core build-essential libsystemd-daemon-dev dh-systemd libev-dev cmake mc"
     echo "   *** erkannte Debian-Version: $VER"
-else 
+else
     neededpackages="debhelper automake libtool libusb-1.0-0-dev git-core build-essential libsystemd-dev dh-systemd libev-dev cmake mc"
     echo "   *** erkannte Debian-Version: $VER"
     echo "   *** Weder Debian Stretch (Verison 9) noch Jessie (Version 8) erkannt. Gehe von neuerer Version aus und wir versuchen mal unser Glück."
 fi
-    
+
 
 echo "   *** Passe /boot/cmdline.txt an, um Ausgabe der Konsole auf serielle Schnittstelle zu unterbinden."
 sleep 2
@@ -71,21 +80,32 @@ apt-get -y upgrade
 
 echo "   *** Hole notwendige Pakete"
 sleep 1
-apt-get install -y $neededpackages 
+apt-get install -y $neededpackages
 
-echo "   *** Hole knxd aus Git und uebersetze knxd. Das dauert eine Weile!" 
+echo "   *** Hole knxd aus Git und uebersetze knxd. Das dauert eine Weile!"
 sleep 1
-su -c 'cd ~ && git clone https://github.com/knxd/knxd.git && cd ~/knxd/ && git checkout master && dpkg-buildpackage -b -uc' pi 
+su -c 'cd ~ && git clone https://github.com/knxd/knxd.git && cd ~/knxd/ && git checkout master && dpkg-buildpackage -b -uc' pi
 
 echo "   *** installiere knxd..."
 sleep 1
-dpkg -i knxd_*.deb knxd-tools_*.deb 
+dpkg -i knxd_*.deb knxd-tools_*.deb
 
 echo "   *** Passe /etc/knxd.conf und /boot/config.txt an"
-cp /etc/knxd.conf /etc/knxd.conf.bkp 
-sed -i '/^KNXD_OPTS=/s/=.*/="-e 0.0.0 -E 0.0.1:8 -D -R -T -S -i --trace=15 -b ft12:\/dev\/ttyKNX1"/' /etc/knxd.conf 
-cp /etc/knxd.conf /etc/knxd.conf.bkp
+cp /etc/knxd.conf /etc/knxd.conf.bkp-`date +%Y-%m-%d`
+sed -i '/^KNXD_OPTS=/s/=.*/="-e 0.0.0 -E 0.0.1:8 -D -R -T -S -i --trace=15 -b ft12:\/dev\/ttyKNX1"/' /etc/knxd.conf
+cp /boot/config.txt /boot/config.txt.bkp-`date +%Y-%m-%d`
 sed -i '/^enable_uart=/s/=.*/=1/' /boot/config.txt
+
+if [ $rpigeneration = "a02082" ]; then
+    echo "   *** RPi 3 erkannt. Deaktiviere Bluetooth"; sleep 1
+    
+    if [ `cat /boot/config.txt | grep pi3-disable-bt`  ]; then
+        sed -i '/^.*pi3-disable-bt/s/.*/dtoverlay=pi3-disable-bt/'  /boot/config.txt
+    else 
+        echo "# disable bluetooth" >> /boot/config.txt
+        echo 'dtoverlay=pi3-disable-bt' >> /boot/config.txt
+    fi
+fi
 
 echo "   *** Stelle Kommunikationspunkt auf ttxKNX1 um"
 sleep 1
