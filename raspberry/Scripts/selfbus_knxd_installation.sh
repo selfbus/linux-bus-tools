@@ -15,10 +15,11 @@
 # limitations under the License.
 
 # History
-# 2018-01-07    First version. Made for fresh RPi Stretch or Jessie installations.
+# 2018-01-07    v1.00: First version. Made for fresh RPi Stretch or Jessie installations.
 #               No script interaction, no error handling.
 #               After calling the script and doing a reboot knxd should be found by ETS
-# 2018-01-09    Adaption for RPi3 + bigfixes
+# 2018-01-09    v1.01: Adaption for RPi3 + bigfixes
+# 2018-01-18    v1.02: switch to stable knxd repository; minor improvements
 
 
 if [ `id -u` = 0 ];then
@@ -39,6 +40,7 @@ kernelsserial=`udevadm info -a /dev/ttyAMA0 | grep KERNELS.*serial | sed "s|.*\"
 attrsid=`udevadm info -a /dev/ttyAMA0 | grep \{id\} | sed "s|.*\"\(.*\)\".*|\\1|"`
 neededpackages=
 rpigeneration=`cat /proc/cpuinfo | grep Revision | sed s/"Revision.*: "/""/g`
+installdate=`date +%Y-%m-%d-%H%M%S`
 
 
 # Zugrundeliegende OS Version prüfen
@@ -82,18 +84,25 @@ echo "   *** Hole notwendige Pakete"
 sleep 1
 apt-get install -y $neededpackages
 
+echo "   *** Stoppe ggf. bereits laufenden KNXD "
+sleep 1
+systemctl stop knxd.service
+systemctl stop knxd.socket
+
 echo "   *** Hole knxd aus Git und uebersetze knxd. Das dauert eine Weile!"
 sleep 1
-su -c 'cd ~ && git clone https://github.com/knxd/knxd.git && cd ~/knxd/ && git checkout master && dpkg-buildpackage -b -uc' pi
+su -c "mkdir /home/pi/knxd_install_$installdate && cd /home/pi/knxd_install_$installdate && git clone -b stable https://github.com/knxd/knxd.git && cd /home/pi/knxd_install_$installdate/knxd && git checkout master && dpkg-buildpackage -b -uc > /home/pi/knxd_install_$installdate/make_log.txt" pi
 
 echo "   *** installiere knxd..."
 sleep 1
+cd /home/pi/knxd_install_$installdate
 dpkg -i knxd_*.deb knxd-tools_*.deb
 
+
 echo "   *** Passe /etc/knxd.conf und /boot/config.txt an"
-cp /etc/knxd.conf /etc/knxd.conf.bkp-`date +%Y-%m-%d`
+cp /etc/knxd.conf /etc/knxd.conf.bkp-$installdate
 sed -i '/^KNXD_OPTS=/s/=.*/="-e 0.0.0 -E 0.0.1:8 -D -R -T -S -i --trace=15 -b ft12:\/dev\/ttyKNX1"/' /etc/knxd.conf
-cp /boot/config.txt /boot/config.txt.bkp-`date +%Y-%m-%d`
+cp /boot/config.txt /boot/config.txt.bkp-$installdate
 sed -i '/^enable_uart=/s/=.*/=1/' /boot/config.txt
 
 if [ $rpigeneration = "a02082" ]; then
@@ -107,9 +116,11 @@ if [ $rpigeneration = "a02082" ]; then
     fi
 fi
 
-echo "   *** Stelle Kommunikationspunkt auf ttxKNX1 um"
+echo "   *** Stelle Kommunikationspunkt auf ttyKNX1 um"
 sleep 1
 echo "ACTION==\"add\", SUBSYSTEM==\"tty\", ATTRS{id}==\"$attrsid\", KERNELS==\"$kernelsserial\", SYMLINK+=\"ttyKNX1\", OWNER=\"knxd\"" > /etc/udev/rules.d/70-knxd.rules
+
+systemctl disable hciuart
 
 echo "   *** "
 echo "   *** Fertig! Wenn keine Fehler aufgetreten sind:"
